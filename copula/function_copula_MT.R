@@ -121,3 +121,55 @@ getinvmarginal<- function(te, mpar, name){
   }
   return(OUT)
 }
+
+
+
+plt_cp_veg_month <- function(xxx, fname, params = list(zlm = c(0,1), col= tim.colors(100))){
+  png(filename = fname,width = 1080, height = 1080, units = "px",
+      bg = "transparent",  res = NA)
+  par(bg = "#ffffff")
+  mat <-t(matrix(1:30,5,6)) 
+  mat = cbind(mat, c(31,0,0,0,0,0))
+  # mat = cbind(c(1,6,11,16,21,26), mat)
+  # mat = rbind(mat, c(26,27,28,29,30,0))
+  nf <- layout(mat, widths = c(1,1,1,1,1,0.2), heights = c(1,1,1,1,1,1))
+  layout.show(nf)
+  # set.panel()
+  # ind <- split.screen(c(6,nmts))
+  for(ii in 1:30){
+    par(mar = c(3.5 ,4.5, 1.5, 0.5), mgp = c(2,0.8,0))
+    vegi = ceiling(ii /nmts)
+    mi = mod0(ii, nmts)
+    print(sprintf('%d,%d', vegi, mi))
+    if (vegi == 1){
+      tmain = sprintf("month = %d", mts[mi])
+    } else {
+      tmain = "";
+    }
+    if (mi == 1){
+      tylb = paste(nms_veg[vegi], "p-pet",sep ='\n')
+    } else {
+      tylb = "p-pet"
+    }
+    Fdata <- xxx[[vegi, mi]]
+    # plot(1:10)
+    image(Fdata$x,Fdata$y,Fdata$z,zlim = params$zlm,col =params$col,
+          main=tmain, cex.main=3,xlab="tmax", ylab= tylb, axes=T,
+          cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.2)
+    # legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
+  }
+  par(mar = c(3.5 ,0.5, 1.5, 2.5), pty = "m", err = -1)
+  breaks = linspace(0,1,length(params$col)+1) * max(params$zlm)
+  ix <- 1:2
+  iy <- breaks
+  nBreaks <- length(breaks)
+  midpoints <- (breaks[1:(nBreaks - 1)] + breaks[2:nBreaks])/2
+  iz <- matrix(midpoints, nrow = 1, ncol = length(midpoints))
+  image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "", 
+        ylab = "",col =params$col,breaks = breaks)
+  axis.args <- c(list(side = 4, mgp = c(3, 1, 0), 
+                      las = 2, 
+                      at = seq(0,1,0.1)* max(params$zlm)))
+  do.call(axis,axis.args)
+  dev.off();
+}

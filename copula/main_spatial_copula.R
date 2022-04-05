@@ -49,7 +49,7 @@ for (vegi in 1:6){
   }
 }
 save(d0, d1, dry1, veg1, heat1, cvine, file = './copula_spatial.RData')
-
+load('./copula_spatial.RData')
 
 ratio = c(0.05, 0.1, 0.2, 0.5)
 cpls = matrix(list(),1,length(ratio))
@@ -83,41 +83,16 @@ for (ri in 1:length(ratio)){
   cpls[[ri]] = cpl
 }
 save(cpls, file = './copula_spatial_plotdata.RData')
+load('./copula_spatial_plotdata.RData')
 ## plot
 
 
-ratio = c(0.05, 0.1, 0.2, 0.5)
-for (ri in 1:length(ratio)){
-  nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
-  png(filename = sprintf('./cpl_spatial_%.2f.jpg', ratio[ri]),width = 1920, height = 1080, units = "px",
-    bg = "transparent",  res = NA)
+nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
 library(fields)
-# library(RColorBrewer)
-set.panel()
-ind <- split.screen(c(6,nmts))
-for(ii in 1:length(ind)){
-  vegi = ceiling(ii /nmts)
-  mi = mod0(ii, nmts)
-  print(sprintf('%d,%d', vegi, mi))
-  if (vegi == 1){
-    tmain = sprintf("month = %d", mts[mi])
-  } else {
-    tmain = "";
-  }
-  if (mi == 1){
-    tylb = nms_veg[vegi]
-  } else {
-    tylb = "p-pet"
-  }
-  Fdata <- cpls[[ri]][[vegi, mi]]
-  screen(ind[ii])
-  image.plot(Fdata$x,Fdata$y,Fdata$z,main=tmain,cex.main=3,xlab="tmax",ylab= tylb,
-             axes=F,col =tim.colors(20),axis.args = list(cex.axis=2),
-             legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
-  )
-}
-close.screen(all=TRUE);
-dev.off();
+ratio = c(0.05, 0.1, 0.2, 0.5)
+for (ri in 1:length(ratio))
+{
+   plt_cp_veg_month(cpls[[ri]], sprintf('./cpl_spatial_%.2f.jpg', ratio[ri]))
 }
 
 
@@ -160,34 +135,5 @@ for (vegi in 1:6){
 }
 
 {
-nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
-png(filename = sprintf('./cpl_spatial_gpp.jpg'),width = 1920, height = 1080, units = "px",
-    bg = "transparent",  res = NA)
-library(fields)
-# library(RColorBrewer)
-set.panel()
-ind <- split.screen(c(6,nmts))
-for(ii in 1:length(ind)){
-  vegi = ceiling(ii /nmts)
-  mi = mod0(ii, nmts)
-  print(sprintf('%d,%d', vegi, mi))
-  if (vegi == 1){
-    tmain = sprintf("month = %d", mts[mi])
-  } else {
-    tmain = "";
-  }
-  if (mi == 1){
-    tylb = nms_veg[vegi]
-  } else {
-    tylb = "p-pet"
-  }
-  Fdata <- cpl2[[vegi, mi]]
-  screen(ind[ii])
-  image.plot(Fdata$x,Fdata$y,Fdata$z,main=tmain,cex.main=3,xlab="tmax",ylab= tylb,
-             axes=T,col =rev(tim.colors(20)),axis.args = list(cex.axis=2),
-             legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
-  )
-}
-close.screen(all=TRUE);
-dev.off();
+  plt_cp_veg_month(cpl2,sprintf('./cpl_spatial_gpp.jpg'), list(zlm = c(0,350), col = rev(tim.colors(100))))
 }
