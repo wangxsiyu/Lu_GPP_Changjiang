@@ -4,6 +4,7 @@ MT_copula_marginal <- function(te, idx_dist = NULL, isjitter = T){
   library(extraDistr)
   distnames = c("norm","weibull","lnorm","gamma","logis","gev")
   if (is.null(idx_dist)){  
+    ndist = length(distnames)
     idx_dist = matrix(1, 1, ndist)
   }
   if (is.numeric(idx_dist)){
@@ -125,6 +126,7 @@ getinvmarginal<- function(te, mpar, name){
 
 
 plt_cp_veg_month <- function(xxx, fname, params = list(zlm = c(0,1), col= tim.colors(100))){
+  nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
   png(filename = fname,width = 1080, height = 1080, units = "px",
       bg = "transparent",  res = NA)
   par(bg = "#ffffff")
@@ -170,6 +172,65 @@ plt_cp_veg_month <- function(xxx, fname, params = list(zlm = c(0,1), col= tim.co
   axis.args <- c(list(side = 4, mgp = c(3, 1, 0), 
                       las = 2, 
                       at = seq(0,1,0.1)* max(params$zlm)))
+  do.call(axis,axis.args)
+  dev.off();
+}
+
+
+plt_cpT_veg_month <- function(xxx, fname, hs, ds,params = list(zlm = c(0,1), col= tim.colors(100))){
+  library(pracma)
+  library(fields)
+  nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
+  png(filename = fname,width = 1920, height = 1080, units = "px",
+      bg = "transparent",  res = NA)
+  par(bg = "#ffffff")
+  mat <-t(matrix(1:16,4,4)) 
+  mat = cbind(mat, c(17,0,0,0))
+  nf = W_figure(mat, marg = c(0.15, 0.1, 0.1, 0), w = c(1,1,1,1,0.2))
+  # set.panel()
+  # ind <- split.screen(c(6,nmts))
+  breaks = linspace(0,1,length(params$col)+1) * max(params$zlm)
+  for(ii in 1:16){
+    par(mar = c(2.5 ,3.5, 1.5, 0.5), mgp = c(2,0.8,0), xpd = NA)
+    hi = ceiling(ii /4)
+    di = mod0(ii, 4)
+    print(sprintf('%d,%d', hi, di))
+    if (hi == 1){
+      tmain = sprintf("p-pet percentile = %.2f",ds[di])
+    } else {
+      tmain = "";
+    }
+    if (di==1){
+      tylb = sprintf("tmax percentile = %.2f", hs[hi])
+    } else {
+      tylb = ""
+    }
+    Fdata <- xxx[[hi, di]]
+    # plot(1:10)
+    # tmap<- as.matrix(Fdata) #t(map);
+    # lon <- c(90.55001, 121.85)
+    # lat <- c(24.55, 35.75)
+    # Fmap <-raster(tmap, #[nrow(tmap):1,],
+    #               xmn=min(lon), xmx=max(lon),
+    #               ymn=min(lat), ymx=max(lat),
+    #               crs=CRS("+proj=longlat +datum=WGS84"))
+    # plot(Fmap, col = params$col, breaks = breaks, main = "",xlab ="", ylab = "",axes = F)
+    image(t(Fdata[dim(Fdata)[1]:1,]),zlim = params$zlm,col =params$col,
+          main=tmain, cex.main=3,xlab="tmax", ylab= tylb, axes=F,
+          cex.main = 3, cex.lab = 3, cex.axis = 2, useRaster = TRUE)
+    # legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
+  }
+  par(mar = c(3.5 ,1.5, 1.5, 3.5), pty = "m", err = -1, xpd = T)
+  ix <- 1:2
+  iy <- breaks
+  nBreaks <- length(breaks)
+  midpoints <- (breaks[1:(nBreaks - 1)] + breaks[2:nBreaks])/2
+  iz <- matrix(midpoints, nrow = 1, ncol = length(midpoints))
+  image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "", 
+        ylab = "",col =params$col,breaks = breaks)
+  axis.args <- c(list(side = 4, mgp = c(3, 1, 0), 
+                      las = 2, 
+                      at = seq(0,1,0.1)* max(params$zlm), cex.axis = 2))
   do.call(axis,axis.args)
   dev.off();
 }

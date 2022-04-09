@@ -2,6 +2,9 @@ library(WangTools)
 library(LuGPP)
 library(pracma)
 clc()
+source('./function_copula_MT.R')
+library(VineCopula)
+library(CDVineCopulaConditional)
 datadir = '../data/gpp/'
 data = loadraw(datadir,"SDgpp")
 vars = loadraw('../data/',c("tmax","ppet"))
@@ -24,9 +27,6 @@ for (mi in 1:length(mts)){
   xp[[2, mi]] = list_mean(td$data)
 }
 ####################### compute copula
-source('./function_copula_MT.R')
-library(VineCopula)
-library(CDVineCopulaConditional)
 cvine = d0 = d1 = veg1 = heat1 = dry1 = matrix(list(), 6,nmts)
 for (vegi in 1:6){
   for (mi in 1:length(mts)){
@@ -39,9 +39,9 @@ for (vegi in 1:6){
     td = td[colMeans(t(is.na(td))) == 0,]
     d0[[vegi, mi]] = td
     ## compute marginal
-    veg1[[vegi, mi]] = MT_copula_marginal(td$gpp,1)
-    heat1[[vegi, mi]] = MT_copula_marginal(td$H,1)
-    dry1[[vegi, mi]] = MT_copula_marginal(td$D, 1)# c(1,3,4,5,6))
+    veg1[[vegi, mi]] = MT_copula_marginal(td$gpp)
+    heat1[[vegi, mi]] = MT_copula_marginal(td$H)
+    dry1[[vegi, mi]] = MT_copula_marginal(td$D, c(1,5,6))
     d1[[vegi, mi]] = data.frame(gpp = veg1[[vegi, mi]]$x, H = heat1[[vegi, mi]]$x, D = dry1[[vegi, mi]]$x)
     ## fit cvine
     ff = as.matrix(d1[[vegi, mi]])
@@ -87,7 +87,6 @@ load('./copula_spatial_plotdata.RData')
 ## plot
 
 
-nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
 library(fields)
 ratio = c(0.05, 0.1, 0.2, 0.5)
 for (ri in 1:length(ratio))

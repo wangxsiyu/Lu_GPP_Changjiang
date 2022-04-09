@@ -2,50 +2,79 @@ library(WangTools)
 library(LuGPP)
 library(pracma)
 clc()
-datadir = '../data/gpp/'
-data = loadraw(datadir,"SDgpp")
-vars = loadraw('../data/',c("tmax","ppet"))
-# get spatial average
-mts = 5:9
-nmts = length(mts)
-nms = names(data)
-map = matrix(list(), length(data),nmts)
-for (di in 1:length(data)){
-  for (mi in 1:length(mts)){
-    td = get_month(data[[nms[di]]], mts[mi])
-    map[[di, mi]] = list_mean(td$data)
-  }
-}
-xp = matrix(list(), 2,nmts)
-for (mi in 1:length(mts)){
-  td = get_month(vars$tmax, mts[mi])
-  xp[[1, mi]] = list_mean(td$data)
-  td = get_month(vars$ppet, mts[mi])
-  xp[[2, mi]] = list_mean(td$data)
-}
+datadir = '../data/yearly/'
+datadir = '../data/yearly2/'
+data = loadraw(datadir)
+idx = data$spei$yr %in% data$AVSDgpp$yr
+data$spei$data = data$spei$data[idx]
+data$spei$yr = data$spei$yr[idx]
 ####################### compute copula
 source('./function_copula_MT.R')
 library(VineCopula)
 library(CDVineCopulaConditional)
-cvine = d0 = d1 = veg1 = heat1 = dry1 = matrix(list(), 6,nmts)
-for (vegi in 1:6){
-  for (mi in 1:length(mts)){
-    print(sprintf('%d,%d', vegi, mi))
-    idx = vegmap == vegi
-    tveg = map[[1,mi]][idx]
-    theat = xp[[1, mi]][idx]
-    tdry = xp[[2, mi]][idx]
-    td = data.frame(gpp = tveg, H = theat, D = tdry)
+nx = dim(data$AVSDgpp$data[[1]])[1]
+ny = dim(data$AVSDgpp$data[[1]])[2]
+
+
+cvine = d1 = veg1 = heat1 = dry1 = matrix(list(), nx, ny)
+
+for (xi in 1:nx){
+  print(sprintf('%d/%d', xi, nx))
+  for (yi in 1:ny){
+    gpp = arrayfun(function(x)x[xi,yi], data$AVSDgpp$data)
+    h = arrayfun(function(x)x[xi,yi], data$heatindex$data)
+    d = arrayfun(function(x)x[xi,yi], data$spei$data)
+    td = data.frame(gpp = detrend(c(gpp)), H = detrend(c(h)), D = detrend(c(d)))
     td = td[colMeans(t(is.na(td))) == 0,]
-    d0[[vegi, mi]] = td
-    ## compute marginal
-    veg1[[vegi, mi]] = MT_copula_marginal(td$gpp,1)
-    heat1[[vegi, mi]] = MT_copula_marginal(td$H,1)
-    dry1[[vegi, mi]] = MT_copula_marginal(td$D, 1)# c(1,3,4,5,6))
-    d1[[vegi, mi]] = data.frame(gpp = veg1[[vegi, mi]]$x, H = heat1[[vegi, mi]]$x, D = dry1[[vegi, mi]]$x)
-    ## fit cvine
-    ff = as.matrix(d1[[vegi, mi]])
-    cvine[[vegi, mi]]<-CDVineCondFit(ff,Nx=2,c(1,2,3,4,5,9),rotation=F,treecrit="AIC",type="CVine",selectioncrit="AIC")
+    if (dim(td)[1] >= 30){
+      ## compute marginal
+      veg1[[xi, yi]] = MT_copula_marginal(td$gpp)
+      heat1[[xi, yi]] = MT_copula_marginal(td$H)
+      dry1[[xi, yi]] = MT_copula_marginal(td$D, c(1,5,6))
+      d1[[xi, yi]] = data.frame(gpp = veg1[[xi, yi]]$x, H = heat1[[xi, yi]]$x, D = dry1[[xi, yi]]$x)
+      ## fit cvine
+      ff = as.matrix(d1[[xi, yi]])
+      invisible(capture.output(cvine[[xi, yi]]<-CDVineCondFit(ff,Nx=2,c(1,2,3,4,5,9),rotation=F,treecrit="AIC",type="CVine",selectioncrit="AIC")))
+    } else{
+      
+    }
   }
 }
-save(d0, d1, dry1, veg1, heat1, cvine, file = './copula_spatial.RData')
+save(d1, dry1, veg1, heat1, cvine, file = './copula_temporal_heatspei_detrend.RData')
+
+
+library(akima) 
+library(fields) 
+ratio = c(0.1, 0.2, 0.3, 0.5)
+hs = c(0.95, 0.9, 0.8, 0.5)
+ds = c(0.05, 0.1, 0.2, 0.5)
+cpls = matrix(list(),1,length(ratio))
+for (ri in 1:length(ratio)){
+  cpls[[ri]]$prob = matrix(list(), length(hs), length(ds))
+  tratio = ratio[ri]
+  cpls[[ri]]$ratio = tratio
+  ### compute conditional prob
+  for (hi in 1:length(hs)){
+    for (di in 1:length(ds)){
+      cpls[[ri]]$prob[[hi, di]] = matrix(NA, nx, ny)
+      Hval = hs[hi]
+      Dval = ds[di]
+      for (xi in 1:nx){
+        print(sprintf('%d,%d,%d, %d/%d', ri, hi, di, xi, nx))
+        for (yi in 1:ny){
+          if (!is.null(cvine[[xi,yi]])){
+            fff = matrix(NA, 1,3)
+            fff[1] = tratio
+            fff[2] = Hval
+            fff[3] = Dval
+            cpls[[ri]]$prob[[hi, di]][xi,yi]= RVinePIT(fff,cvine[[xi, yi]])[1]
+          }
+        }
+      }
+    }
+  }
+}
+save(cpls, file = './copula_temporal_plotdata_heatspei_detrend.RData')
+## plot
+
+
