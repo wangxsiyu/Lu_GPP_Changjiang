@@ -2,7 +2,7 @@ d = d_cor
 nms = c("GLASSgpp", "LUEgpp", "Musyqgpp", "Pgpp", "SIFgpp", "VPMgpp")
 cols = c("#23FFDC", "#00008F", "#800000", "#FF4A00", "#005AFF", "#ECFF13")
 
-nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
+nms_veg = c("Forest","Open Forest","Shrub Land","Paddy Field","Dry Land","Grassland")
 par(mfrow = c(2,2), oma = c(5,4,1,1))
 emf('./figures/parcor_tmax.emf')
 avr = list_mean(d$SDgpp$output_reg$coef_partialcor[1,8])
@@ -23,9 +23,6 @@ tt = matrix(NA, 6, 12)
 for (i in 1: 12){
   tt[,i] = tet[[i]]
 }
-boxplot(t(tt[,5:9]), ylim = c(0.1, 0.6), xlab = "", ylab = "partial correlation",
-        main = "tmax", col = cols, xaxt = "n")
-axis(side = 1, at = 1:6, label = nms_veg, srt = 45, las = 2)
 
 out = matrix(NA, 141702, 12)
 for (i in 1:12){
@@ -33,9 +30,17 @@ for (i in 1:12){
 }
 
 boxplot(out, outline = F)
-a = colMeans(out, na.rm = T)
-
-barplot(a,xlab = "month", ylab ="partial correlation", main ="tmax", ylim = c(0,0.5))
+a = W_av(out)
+# b = W_se(out)
+dev.off()
+W_figure(1,2)
+W_barplot(a,xlab = "Month", ylab ="Partial correlation", main ="GPP vs Tmax by Month",
+          ylim = c(0,0.7), names.arg = 1:12, cex.axis = 1.2, cex.lab = 1.5)
+plt <- boxplot(t(tt[,5:9]), ylim = c(0, 0.7), xlab = "", ylab = "Partial correlation",
+        main = "GPP vs Tmax by Vegetation", col = cols, xaxt = "n", cex.lab = 1.5, cex.axis = 1.2)
+# nms_veg = c("Forest","Open\nForest","Shrub\nLand","Paddy\nField","Dry\nLand","Grassland")
+text(1:6, par("usr")[3], labels = nms_veg, srt = 45, adj = c(1.1,1.1),
+     xpd = TRUE, cex=1.2)
 
 emf('./figures/parcor_ppet.emf')
 
@@ -59,9 +64,6 @@ tt = matrix(NA, 6, 12)
 for (i in 1: 12){
   tt[,i] = tet[[i]]
 }
-boxplot(t(tt[,5:9]), ylim = c(-0.1, 0.2), xlab = "", ylab = "partial correlation",
-        main = "P-PET", col = cols, xaxt = "n")
-axis(side = 1, at = 1:6, label = nms_veg, srt = 45, las = 2)
 
 out = matrix(NA, 141702, 12)
 for (i in 1:12){
@@ -70,5 +72,10 @@ for (i in 1:12){
 
 boxplot(out, outline = F)
 a = colMeans(out, na.rm = T)
-
-barplot(a,xlab = "month", ylab ="partial correlation", main ="P-PET", ylim = c(0,0.5))
+W_figure(1,2)
+W_barplot(a,xlab = "Month", ylab ="Partial correlation", main ="GPP vs P-PET by Month",
+          ylim = c(-0.2, 0.5), names.arg = 1:12, cex.axis = 1.2, cex.lab = 1.5)
+plt <- boxplot(t(tt[,5:9]), ylim = c(-0.2, 0.5), xlab = "", ylab = "Partial correlation",
+               main = "GPP vs P-PET by Vegetation", col = cols, xaxt = "n", cex.lab = 1.5, cex.axis = 1.2)
+text(1:6, par("usr")[3], labels = nms_veg, srt = 45, adj = c(1.1,1.1),
+     xpd = TRUE, cex=1.2)

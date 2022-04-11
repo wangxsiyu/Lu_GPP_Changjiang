@@ -3,6 +3,7 @@ library(LuGPP)
 library(pracma)
 library(devtools)
 reload(pkgload::inst("LuGPP"))
+reload(pkgload::inst("WangTools"))
 clc()
 
 formatname <- function(d){
