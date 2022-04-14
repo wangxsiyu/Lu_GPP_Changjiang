@@ -111,6 +111,7 @@ for (i in 1:12){
 a = W_av(out)
 a2 = W_av(out2)
 dev.off()
+
 {
 W_figure(2,2)
 W_barplot(a,xlab = "Month", ylab ="Peak Partial correlation", main ="GPP vs P-PET by Month",
