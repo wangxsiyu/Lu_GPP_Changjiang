@@ -5,7 +5,7 @@ MT_copula_marginal <- function(te, idx_dist = NULL, isjitter = T){
   distnames = c("norm","weibull","lnorm","gamma","logis","gev")
   if (is.null(idx_dist)){  
     ndist = length(distnames)
-    idx_dist = matrix(1, 1, ndist)
+    idx_dist = 1:ndist#matrix(1, 1, ndist)
   }
   if (is.numeric(idx_dist)){
     distnames = distnames[(1:length(distnames) %in% idx_dist)]
@@ -122,29 +122,22 @@ getinvmarginal<- function(te, mpar, name){
   }
   return(OUT)
 }
-
-
-
-plt_cp_veg_month <- function(xxx, fname, params = list(zlm = c(0,1), col= tim.colors(100))){
-  nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
-  png(filename = fname,width = 1080, height = 1080, units = "px",
+library(fields)#tim.colors(100)
+plt_cp_veg_month <- function(xxx, fname, ratio, params = list(xlm = NULL, ylm = NULL, zlm = c(0,1), col= hcl.colors(12, "YlOrRd", rev = TRUE))){
+  nms_veg = c("Forest","Open Forest","Shrub Land","Paddy Field","Dry Land","Grassland")
+  png(filename = fname,width = 1280, height = 1200, units = "px",
       bg = "transparent",  res = NA)
   par(bg = "#ffffff")
   mat <-t(matrix(1:30,5,6)) 
-  mat = cbind(mat, c(31,0,0,0,0,0))
-  # mat = cbind(c(1,6,11,16,21,26), mat)
-  # mat = rbind(mat, c(26,27,28,29,30,0))
-  nf <- layout(mat, widths = c(1,1,1,1,1,0.2), heights = c(1,1,1,1,1,1))
-  layout.show(nf)
-  # set.panel()
-  # ind <- split.screen(c(6,nmts))
+  mat = cbind(mat, c(31,31,0,0,0,0))
+  nf <- W_figure(mat, marg = c(0.15, 0.22, 0.15, 0), w = c(1,1,1,1,1,0.3), h = c(1,1,1,1,1,1))
   for(ii in 1:30){
-    par(mar = c(3.5 ,4.5, 1.5, 0.5), mgp = c(2,0.8,0))
+    par(mar = c(3.5 ,4.5, 2, 0.5), xpd = NA)
     vegi = ceiling(ii /nmts)
     mi = mod0(ii, nmts)
     print(sprintf('%d,%d', vegi, mi))
     if (vegi == 1){
-      tmain = sprintf("month = %d", mts[mi])
+      tmain = sprintf("month = %d\n", mts[mi])
     } else {
       tmain = "";
     }
@@ -154,13 +147,26 @@ plt_cp_veg_month <- function(xxx, fname, params = list(zlm = c(0,1), col= tim.co
       tylb = "p-pet"
     }
     Fdata <- xxx[[vegi, mi]]
+    if (!is.null(params$xlm)){
+       xlm = params$xlm
+    } else {
+      xlm = c(min(Fdata$x, na.rm = T), max(Fdata$x, na.rm = T))
+    }
+    if (!is.null(params$ylm)){
+      ylm = params$ylm
+    } else {
+      ylm = c(min(Fdata$y, na.rm = T), max(Fdata$y, na.rm = T))
+    }
     # plot(1:10)
+    pppp <- par('usr')
+    do.call('clip', as.list(pppp))
     image(Fdata$x,Fdata$y,Fdata$z,zlim = params$zlm,col =params$col,
-          main=tmain, cex.main=3,xlab="tmax", ylab= tylb, axes=T,
-          cex.main = 1.5, cex.lab = 1.5, cex.axis = 1.2)
+          main=tmain,xlab="tmax", ylab= tylb, axes=T,
+          cex.main = 3, cex.lab = 3, cex.axis = 2, useRaster = FALSE, xlim = xlm, ylim = ylm)
+    
     # legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
   }
-  par(mar = c(3.5 ,0.5, 1.5, 2.5), pty = "m", err = -1)
+  par(mar = c(2 ,1, 2, 5), pty = "m", err = -1,cex.axis = 2)
   breaks = linspace(0,1,length(params$col)+1) * max(params$zlm)
   ix <- 1:2
   iy <- breaks
@@ -168,20 +174,25 @@ plt_cp_veg_month <- function(xxx, fname, params = list(zlm = c(0,1), col= tim.co
   midpoints <- (breaks[1:(nBreaks - 1)] + breaks[2:nBreaks])/2
   iz <- matrix(midpoints, nrow = 1, ncol = length(midpoints))
   image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "", 
-        ylab = "",col =params$col,breaks = breaks)
+        ylab = "",col =params$col,breaks = breaks, las = 2, cex.lab = 3)
   axis.args <- c(list(side = 4, mgp = c(3, 1, 0), 
                       las = 2, 
-                      at = seq(0,1,0.1)* max(params$zlm)))
+                      at = seq(0,1,0.1)* max(params$zlm), cex.axis = 2))
   do.call(axis,axis.args)
+  text(2,par('usr')[3] - 0.3, labels = sprintf("P(GPP < %.f%%)", ratio * 100),
+       srt = 270, cex = 3)
+  # axis.args <- c(list(side = 1, mgp = c(3, 1, 0), 
+  #                     las = 2, cex.lab = 3))
+  # do.call(axis,axis.args)
   dev.off();
 }
 
 
-plt_cpT_veg_month <- function(xxx, fname, hs, ds,params = list(zlm = c(0,1), col= tim.colors(100))){
+plt_cpT_veg_month <- function(xxx, fname, hs, ds,set = 1,params = list(zlm = c(0,1), col= hcl.colors(12, "YlOrRd", rev = TRUE))){
   library(pracma)
   library(fields)
   nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
-  png(filename = fname,width = 1920, height = 1080, units = "px",
+  png(filename = fname,width = 1920, height = 1024, units = "px",
       bg = "transparent",  res = NA)
   par(bg = "#ffffff")
   mat <-t(matrix(1:16,4,4)) 
@@ -196,12 +207,29 @@ plt_cpT_veg_month <- function(xxx, fname, hs, ds,params = list(zlm = c(0,1), col
     di = mod0(ii, 4)
     print(sprintf('%d,%d', hi, di))
     if (hi == 1){
-      tmain = sprintf("p-pet percentile = %.2f",ds[di])
+      if (set == 1)
+       tmain = sprintf("P-PET = %.2f",ds[di])
+      else if (set == 2)
+        tmain = sprintf("SPEI = %.2f",ds[di])
+      else if (set == 3 || set == 4 || set == 5)
+        tmain = sprintf("p(GPP < %.2f)",hs[di])
     } else {
       tmain = "";
     }
     if (di==1){
-      tylb = sprintf("tmax percentile = %.2f", hs[hi])
+      if (set == 1)
+        tylb = sprintf("Tmax = %.2f", hs[hi])
+      else if (set == 2)
+        tylb = sprintf("HEAT = %.2f", hs[hi])
+      else if (set == 3)     
+        tylb = sprintf("SPEI = %.2f\nHEAT = 0.5",ds[hi])
+      else if (set == 4)     
+        tylb = sprintf("HEAT = %.2f\nSPEI = 0.5",ds[hi])
+      else if (set == 5)     
+        tylb = sprintf("HEAT = %.2f\nSPEI = %.2f",ds[hi,1],ds[hi,2])
+
+        
+      
     } else {
       tylb = ""
     }
@@ -216,7 +244,7 @@ plt_cpT_veg_month <- function(xxx, fname, hs, ds,params = list(zlm = c(0,1), col
     #               crs=CRS("+proj=longlat +datum=WGS84"))
     # plot(Fmap, col = params$col, breaks = breaks, main = "",xlab ="", ylab = "",axes = F)
     image(t(Fdata[dim(Fdata)[1]:1,]),zlim = params$zlm,col =params$col,
-          main=tmain, cex.main=3,xlab="tmax", ylab= tylb, axes=F,
+          main=tmain, cex.main=3,xlab="", ylab= tylb, axes=F,
           cex.main = 3, cex.lab = 3, cex.axis = 2, useRaster = TRUE)
     # legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
   }

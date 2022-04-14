@@ -20,22 +20,22 @@ par(mfrow = c(1,3))
 plot(f1$gpp, f1$H)
 plot(f1$gpp, f1$D)
 plot(f1$H, f1$D)
-# library(plotly)
-# fig <- plot_ly(td1, x = ~H, y = ~D, z = ~gpp,
-#                marker = list(color = ~gpp, colorscale = c('#FFE1A1', '#683531'), showscale = TRUE))
-# fig <- fig %>% add_markers()
-# fig <- fig %>% layout(scene = list(xaxis = list(title = 'heat'),
-#                                    yaxis = list(title = 'drought'),
-#                                    zaxis = list(title = 'gpp')),
-#                       annotations = list(
-#                         x = 1.13,
-#                         y = 1.05,
-#                         text = 'GPP',
-#                         xref = 'paper',
-#                         yref = 'paper',
-#                         showarrow = FALSE
-#                       ))
-# fig
+library(plotly)
+fig <- plot_ly(td1, x = ~H, y = ~D, z = ~gpp,
+               marker = list(color = ~gpp, colorscale = c('#FFE1A1', '#683531'), showscale = TRUE))
+fig <- fig %>% add_markers()
+fig <- fig %>% layout(scene = list(xaxis = list(title = 'heat'),
+                                   yaxis = list(title = 'drought'),
+                                   zaxis = list(title = 'gpp')),
+                      annotations = list(
+                        x = 1.13,
+                        y = 1.05,
+                        text = 'GPP',
+                        xref = 'paper',
+                        yref = 'paper',
+                        showarrow = FALSE
+                      ))
+fig
 
 
 

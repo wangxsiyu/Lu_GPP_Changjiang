@@ -1,0 +1,11 @@
+library(WangTools)
+library(LuGPP)
+library(pracma)
+clc()
+source('./function_copula_MT.R')
+source('./function_spatial.R')
+library(VineCopula)
+library(CDVineCopulaConditional)
+datadir = '../data/gpp/'
+data = loadraw(datadir,"SDgpp")
+vars = loadraw('../data/',c("tmax","ppet"))
