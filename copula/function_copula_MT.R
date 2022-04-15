@@ -3,7 +3,7 @@ MT_copula_marginal <- function(te, idx_dist = NULL, isjitter = T){
   library(extRemes)
   library(extraDistr)
   distnames = c("norm","weibull","lnorm","gamma","logis","gev")
-  if (is.null(idx_dist)){  
+  if (is.null(idx_dist)){
     ndist = length(distnames)
     idx_dist = 1:ndist#matrix(1, 1, ndist)
   }
@@ -17,7 +17,7 @@ MT_copula_marginal <- function(te, idx_dist = NULL, isjitter = T){
   #   distnames = setdiff(distnames, "weibull")
   # }
   ndist = length(distnames)
-  
+
   pars = matrix(list(), 1, ndist)
   # set initial parsameter
   for (i in 1:ndist){
@@ -29,10 +29,10 @@ MT_copula_marginal <- function(te, idx_dist = NULL, isjitter = T){
     fits[[i]] = getfitdist(te, distnames[i])
     pars[[i]] = getparsfit(fits[[i]], distnames[i])
   }
-    
+
   # extreme value distribution -- http://tougao.ecoagri.ac.cn/html/zgstny/2019/12/2019-1206.htm#outline_anchor_8
   # plot(fit)
-  
+
   ## Goodness-of-fit statistics
   # ks test
   ks<-matrix(0,1,ndist)
@@ -58,10 +58,10 @@ MT_copula_marginal <- function(te, idx_dist = NULL, isjitter = T){
       aic_re[i] = gofstat(fits[[i]], fitnames = c(distnames[i]))$aic
     }
   }
-  
+
   ## marginal count
   marginaldist<- which.min(aic_re)
-  
+
   ##  2. calculte marginal distribution
   ## "norm","weibull","lognorm","gamma","logistic","gev"
   Xmarginal = getmarginal(te, pars[[marginaldist]], distnames[marginaldist])
@@ -128,7 +128,7 @@ plt_cp_veg_month <- function(xxx, fname, ratio, params = list(xlm = NULL, ylm = 
   png(filename = fname,width = 1280, height = 1200, units = "px",
       bg = "transparent",  res = NA)
   par(bg = "#ffffff")
-  mat <-t(matrix(1:30,5,6)) 
+  mat <-t(matrix(1:30,5,6))
   mat = cbind(mat, c(31,31,0,0,0,0))
   nf <- W_figure(mat, marg = c(0.15, 0.22, 0.15, 0), w = c(1,1,1,1,1,0.3), h = c(1,1,1,1,1,1))
   for(ii in 1:30){
@@ -163,7 +163,7 @@ plt_cp_veg_month <- function(xxx, fname, ratio, params = list(xlm = NULL, ylm = 
     image(Fdata$x,Fdata$y,Fdata$z,zlim = params$zlm,col =params$col,
           main=tmain,xlab="tmax", ylab= tylb, axes=T,
           cex.main = 3, cex.lab = 3, cex.axis = 2, useRaster = FALSE, xlim = xlm, ylim = ylm)
-    
+
     # legend.args=list( text=""),smallplot=c(0.85,0.9,0.1,0.9)
   }
   par(mar = c(2 ,1, 2, 5), pty = "m", err = -1,cex.axis = 2)
@@ -173,15 +173,15 @@ plt_cp_veg_month <- function(xxx, fname, ratio, params = list(xlm = NULL, ylm = 
   nBreaks <- length(breaks)
   midpoints <- (breaks[1:(nBreaks - 1)] + breaks[2:nBreaks])/2
   iz <- matrix(midpoints, nrow = 1, ncol = length(midpoints))
-  image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "", 
+  image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "",
         ylab = "",col =params$col,breaks = breaks, las = 2, cex.lab = 3)
-  axis.args <- c(list(side = 4, mgp = c(3, 1, 0), 
-                      las = 2, 
+  axis.args <- c(list(side = 4, mgp = c(3, 1, 0),
+                      las = 2,
                       at = seq(0,1,0.1)* max(params$zlm), cex.axis = 2))
   do.call(axis,axis.args)
   text(2,par('usr')[3] - 0.3, labels = sprintf("P(GPP < %.f%%)", ratio * 100),
        srt = 270, cex = 3)
-  # axis.args <- c(list(side = 1, mgp = c(3, 1, 0), 
+  # axis.args <- c(list(side = 1, mgp = c(3, 1, 0),
   #                     las = 2, cex.lab = 3))
   # do.call(axis,axis.args)
   dev.off();
@@ -195,7 +195,7 @@ plt_cpT_veg_month <- function(xxx, fname, hs, ds,set = 1,params = list(zlm = c(0
   png(filename = fname,width = 1920, height = 1024, units = "px",
       bg = "transparent",  res = NA)
   par(bg = "#ffffff")
-  mat <-t(matrix(1:16,4,4)) 
+  mat <-t(matrix(1:16,4,4))
   mat = cbind(mat, c(17,0,0,0))
   nf = W_figure(mat, marg = c(0.15, 0.1, 0.1, 0), w = c(1,1,1,1,0.2))
   # set.panel()
@@ -220,16 +220,16 @@ plt_cpT_veg_month <- function(xxx, fname, hs, ds,set = 1,params = list(zlm = c(0
       if (set == 1)
         tylb = sprintf("Tmax = %.2f", hs[hi])
       else if (set == 2)
-        tylb = sprintf("HEAT = %.2f", hs[hi])
-      else if (set == 3)     
-        tylb = sprintf("SPEI = %.2f\nHEAT = 0.5",ds[hi])
-      else if (set == 4)     
-        tylb = sprintf("HEAT = %.2f\nSPEI = 0.5",ds[hi])
-      else if (set == 5)     
-        tylb = sprintf("HEAT = %.2f\nSPEI = %.2f",ds[hi,1],ds[hi,2])
+        tylb = sprintf("CHWI = %.2f", hs[hi])
+      else if (set == 3)
+        tylb = sprintf("SPEI = %.2f\nCHWI = 0.5",ds[hi])
+      else if (set == 4)
+        tylb = sprintf("CHWI = %.2f\nSPEI = 0.5",ds[hi])
+      else if (set == 5)
+        tylb = sprintf("CHWI = %.2f\nSPEI = %.2f",ds[hi,1],ds[hi,2])
 
-        
-      
+
+
     } else {
       tylb = ""
     }
@@ -254,10 +254,10 @@ plt_cpT_veg_month <- function(xxx, fname, hs, ds,set = 1,params = list(zlm = c(0
   nBreaks <- length(breaks)
   midpoints <- (breaks[1:(nBreaks - 1)] + breaks[2:nBreaks])/2
   iz <- matrix(midpoints, nrow = 1, ncol = length(midpoints))
-  image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "", 
+  image(ix,iy, iz, xaxt = "n", yaxt = "n", xlab = "",
         ylab = "",col =params$col,breaks = breaks)
-  axis.args <- c(list(side = 4, mgp = c(3, 1, 0), 
-                      las = 2, 
+  axis.args <- c(list(side = 4, mgp = c(3, 1, 0),
+                      las = 2,
                       at = seq(0,1,0.1)* max(params$zlm), cex.axis = 2))
   do.call(axis,axis.args)
   dev.off();
