@@ -61,6 +61,7 @@ hs = c(0.95, 0.9, 0.8, 0.5)
 ds = c(0.05, 0.1, 0.2, 0.5)
 file = './copula_temporal_plotdata_tmaxppet_detrend.RData'
 file = './copula_temporal_plotdata_CHWIspei_detrend.RData'
+file = './copula_temporal_heatspei_detrend_2000TO2016.RData'
 savename = str_replace(file,'_plotdata','')
 savename = str_replace(savename, 'copula_', '')
 savename = str_replace(savename, '.RData', '')
@@ -113,7 +114,7 @@ plt_cpT_veg_month(cplt, sprintf("./figs/%s_HD.png", savename),ratios,tds,set = 5
 lgd = c("CHWI = 0.95\nSPEI = 0.05","CHWI = 0.5\nSPEI = 0.05",
         "CHWI = 0.95\nSPEI = 0.5","CHWI = 0.5\nSPEI = 0.5")
 cols = c("red","gold","pink", "green")
-plt_final(cplt, lgd, "./figs/final_HD.png",cols)
+plt_final(cplt, lgd, sprintf("./figs/%s_final_HD.png",savename),cols)
 
 plt_final <-function(cplt, lgd, fname = NULL,    cols = c("red","pink", "gold","green")){
   nms_veg = c("Forest","Open Forest","Shrub Land","Paddy Field","Dry Land","Grassland")

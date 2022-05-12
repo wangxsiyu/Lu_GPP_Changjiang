@@ -18,29 +18,36 @@ ny = dim(data$AVSDgpp$data[[1]])[2]
 
 cvine = d1 = veg1 = heat1 = dry1 = matrix(list(), nx, ny)
 
+yearrg = 1982:1999
+stryrrg = '1982TO1999'
+
+
+yearrg = 2000:2016
+stryrrg = '2000TO2016'
+idxyr = data$AVSDgpp$yr %in% yearrg
 for (xi in 1:nx){
   print(sprintf('%d/%d', xi, nx))
   for (yi in 1:ny){
-    gpp = arrayfun(function(x)x[xi,yi], data$AVSDgpp$data)
-    h = arrayfun(function(x)x[xi,yi], data$heatindex$data)
-    d = arrayfun(function(x)x[xi,yi], data$spei$data)
+    gpp = arrayfun(function(x)x[xi,yi], data$AVSDgpp$data[idxyr])
+    h = arrayfun(function(x)x[xi,yi], data$heatindex$data[idxyr])
+    d = arrayfun(function(x)x[xi,yi], data$spei$data[idxyr])
     td = data.frame(gpp = detrend(c(gpp)), H = detrend(c(h)), D = detrend(c(d)))
     td = td[colMeans(t(is.na(td))) == 0,]
-    if (dim(td)[1] >= 30){
+    if (dim(td)[1] >= 15 && sd(td$gpp) != 0 && sd(td$H)!=0 && sd(td$D) !=0){
       ## compute marginal
       veg1[[xi, yi]] = MT_copula_marginal(td$gpp, c(1,5,6))
       heat1[[xi, yi]] = MT_copula_marginal(td$H, c(1,5,6))
-      # dry1[[xi, yi]] = MT_copula_marginal(td$D, c(1,5,6))
-      # d1[[xi, yi]] = data.frame(gpp = veg1[[xi, yi]]$x, H = heat1[[xi, yi]]$x, D = dry1[[xi, yi]]$x)
+      dry1[[xi, yi]] = MT_copula_marginal(td$D, c(1,5,6))
+      d1[[xi, yi]] = data.frame(gpp = veg1[[xi, yi]]$x, H = heat1[[xi, yi]]$x, D = dry1[[xi, yi]]$x)
       ## fit cvine
-      # ff = as.matrix(d1[[xi, yi]])
-      # invisible(capture.output(cvine[[xi, yi]]<-CDVineCondFit(ff,Nx=2,c(1,2,3,4,5,9),rotation=F,treecrit="AIC",type="CVine",selectioncrit="AIC")))
+      ff = as.matrix(d1[[xi, yi]])
+      invisible(capture.output(cvine[[xi, yi]]<-CDVineCondFit(ff,Nx=2,c(1,2,3,4,5,9),rotation=F,treecrit="AIC",type="CVine",selectioncrit="AIC")))
     } else{
 
     }
   }
 }
-save(d1, dry1, veg1, heat1, cvine, file = './copula_temporal_heatspei_detrend.RData')
+save(d1, dry1, veg1, heat1, cvine, file = sprintf('./copula_temporal_heatspei_detrend_%s.RData',stryrrg))
 
 
 library(akima)
@@ -74,7 +81,7 @@ for (ri in 1:length(ratio)){
     }
   }
 }
-save(cpls, file = './copula_temporal_plotdata_heatspei_detrend.RData')
+save(cpls, file = sprintf('./copula_temporal_plotdata_heatspei_detrend_%s.RData', stryrrg))
 ## plot
 
 
