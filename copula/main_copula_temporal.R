@@ -19,6 +19,8 @@ ny = dim(data$AVSDgpp$data[[1]])[2]
 cvine = d1 = veg1 = heat1 = dry1 = matrix(list(), nx, ny)
 
 yearrg = 1982:1999
+
+
 stryrrg = '1982TO1999'
 
 
