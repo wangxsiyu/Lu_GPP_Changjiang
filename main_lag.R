@@ -4,7 +4,7 @@ library(LuGPP)
 library(pracma)
 library(ppcor)
 library(rwa)
-filehead = 'reglag_'
+filehead = 'reglagNEW_'
 clc()
 datadir = './data/gpp/'
 data = loadraw(datadir)
@@ -30,9 +30,11 @@ strhd = paste(hdnms, collapse = "+")
 hd = get_common(hd)
 months = 1:12
 }
+
+veg = c("Pgpp","SDgpp","SIFgpp","VPMgpp","Musyqgpp","LUEgpp")
 for (vegi in 1:length(veg)) {
   tveg = hd
-  tveg$veg = data[[vegi]]
+  tveg$veg = data[[veg[vegi]]]
   tveg = merge_vars(tveg)
   tstr = paste("veg", "~", strhd)
   tfile = sprintf("%slag%d_%s.RData", filehead, nlag, veg[vegi])
@@ -41,7 +43,7 @@ for (vegi in 1:length(veg)) {
     next;
   }
   output_reg = list()
-  output_reg$rs = output_reg$ps = matrix(list(),1,12)
+  output_reg$rs = output_reg$ps = output_reg$parcor_predH = output_reg$parcor_predD = matrix(list(),1,12)
   output_reg$coef_standreg = output_reg$pval_standreg = matrix(list(), nlag*2+2, 12)
   for (mi in 1:length(months)){
     print(sprintf('veg %d/%d, mt%d/%d', vegi, length(veg), mi, length(months)))
@@ -51,6 +53,8 @@ for (vegi in 1:length(veg)) {
     ny = dim(tvegm$veg[[1]])[2]
     nt = length(tvegm$yyyymm)
     output_reg$rs[[mi]] = output_reg$ps[[mi]] = matrix(NA, nx, ny)
+    output_reg$parcor_predH[[mi]] = matrix(NA, nx, ny)
+    output_reg$parcor_predD[[mi]] = matrix(NA, nx, ny)
     for (vi in 1:(2*(nlag+1))){
       output_reg$coef_standreg[[vi, mi]] = matrix(NA, nx, ny)
       output_reg$pval_standreg[[vi, mi]] = matrix(NA, nx, ny)
@@ -60,36 +64,54 @@ for (vegi in 1:length(veg)) {
       {        print(sprintf('%d/%d', xi, nx))}
       for (yi in 1:ny){
         te = matrix(NA, nt , nlag*2 + 3)
-        tnms = names(tveg) 
+        tnms = names(tveg)
         tnms = setdiff(tnms, c("yyyymm","yr","mt"))
         for (vi in 1:length(tnms)){
           te[,vi] = arrayfun(function(x)x[xi, yi], tvegm[[tnms[vi]]])
         }
         te = as.data.frame(te)
         names(te) = tnms
-        
+
         idxall =colMeans(is.na(t(te))) ==0
-        if ((sum(idxall) < 10) || (sd(te$veg, na.rm = T)==0)){
-          
+        if ((sum(idxall) <= 10) || (sd(te$veg, na.rm = T)==0)){
+
         }
         else{
           te = te[idxall,]
-          
+
           # standardize
           t0 = as.data.frame(scale(te))
-          
-          
+
+
           # standardized regression weight
           tlm = lm(tstr, t0)
           tlm = summary(tlm)
+
+          t0nms = names(t0)
+          t0nms = t0nms[!t0nms %in% c("veg")]
+          cfs = tlm$coefficients[,1]
+          cfs = arrayfun(function(x){cfs[names(cfs) %in% x]}, t0nms)
+
+          y0 = t0[,dim(t0)[2]]
+          tempx = as.matrix(t0[,1:dim(t0)[2]-1] )
+          tempw = matrix(cfs,length(cfs),1)
+
+          ttid = seq(1,12,2)
+          predH = tempx[,ttid] %*% tempw[ttid]
+          ttid = seq(2,12,2)
+          predD = tempx[,ttid] %*% tempw[ttid]
+
+          output_reg$parcor_predH[[mi]][xi,yi] = cor(predH, y0)
+          output_reg$parcor_predD[[mi]][xi,yi] = cor(predD, y0)
+
           for (vi in 1:(dim(tlm$coefficients)[1]-1) ){
             output_reg$coef_standreg[[vi, mi]][xi,yi] = as.numeric(tlm$coefficients[vi+1,1])
             output_reg$pval_standreg[[vi, mi]][xi,yi] = as.numeric(tlm$coefficients[vi+1,4])
           }
-          
+
           output_reg$rs[[mi]][xi, yi] = tlm$r.squared
           output_reg$ps[[mi]][xi, yi] = pf(tlm$fstatistic[1],tlm$fstatistic[2],tlm$fstatistic[3],lower.tail=F)
-          
+
         }
       }
     }

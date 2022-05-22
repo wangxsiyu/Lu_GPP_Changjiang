@@ -9,7 +9,7 @@ filehead = 'lagSPEI_'
 option = c(1)
 clc()
 datadir = './data/gpp/'
-data = loadraw(datadir, "SDgpp")
+data = loadraw(datadir)
 var = loadraw('./data/','tmax')
 spei = loadraw('./data/spei/')
 nspei = length(spei)
@@ -17,27 +17,29 @@ lag = names(spei)
 lag = strsplit(lag, 'spei')
 lag = arrayfun(function(x){as.numeric(x[2])}, lag)
 veg = names(data)
+veg = veg[veg%in%c("Pgpp","SIFgpp","VPMgpp","Musyqgpp")]
 months = 1:12
+
 for (vegi in 1:length(veg)) {
   tfile = sprintf("%s%s.RData", filehead, veg[vegi])
-  tfilename = file.path("./output/lagSPEI/",tfile)
+  tfilename = file.path("./output/lagSPEI",tfile)
 
   output_reg = list()
   output_reg$coef_partialcor = output_reg$pval_partialcor = matrix(list(), length(spei), 12)
   for (si in 1:length(spei)){
-    tveg = c(var, data[vegi])
+    tveg = c(var, data[veg[vegi]])
     tveg$spei = spei[[si]]
     tveg = merge_vars(tveg)
     tstr = paste(veg[vegi], "~ tmax + spei")
     for (mi in 1:length(months)){
-      output_reg$coef_partialcor[[si, mi]] = matrix(NA, nx, ny)
-      output_reg$pval_partialcor[[si, mi]] = matrix(NA, nx, ny)
 
       print(sprintf('spei %d/%d, mt%d/%d', si, length(spei), mi, length(months)))
       mt = months[mi]
       tvegm = get_month(tveg, mt)
       nx = dim(tvegm[[veg[vegi]]][[1]])[1]
       ny = dim(tvegm[[veg[vegi]]][[1]])[2]
+      output_reg$coef_partialcor[[si, mi]] = matrix(NA, nx, ny)
+      output_reg$pval_partialcor[[si, mi]] = matrix(NA, nx, ny)
       nt = length(tvegm$yyyymm)
       for (xi in 1:nx){
         if (xi %% 10 == 0)
