@@ -14,12 +14,12 @@ formatname <- function(d){
     nms = arrayfun(function(x)strsplit(x,' ~')[[1]][1],nms)
   }
   if (all(grepl('_', nms))){
-    nms = arrayfun(function(x)strsplit(x,'_')[[1]][2],nms)
+    nms = arrayfun(function(x)strsplit(x,'_')[[1]][3],nms)
   }
   names(d) = nms
   return(d)
 }
-dir_cor = "./output/parcor/"
+dir_cor = "./output/reglagPcor/"
 d_cor = W_load(dir_cor)
 d_cor = formatname(d_cor)
 
@@ -37,17 +37,18 @@ lagveg2veglag <- function(te){
 
 
 nms = names(d_cor)
-nms = nms[!nms %in% "AVgpp"]
+nms = nms[!nms %in% c("AVgpp","ECLUEgpp")]
 nms = nms[c(5,4,2,6,7,3,1)]
 
 
+nms_veg = c("forest","open forest","shrub land","paddy field","dry land","grassland")
+cols = c("#23FFDC", "#00008F", "#800000", "#FF4A00", "#005AFF", "#ECFF13")
 
 # library(devEMF)
 # emf('./figures/FIGURE_all_lag.emf')
 dev.off()
 {
-  png('./figures/FIGURE_all_pcor.png',width = 1600, height = 800)
-
+  png('./figures/FIGURE_all_PCOR_new.png',width = 1600, height = 900)
   tout = matrix(list(),2,6)
   for (i in 1:6){
     tout[[1,i]] = matrix(NA, 7,12)
@@ -56,8 +57,8 @@ dev.off()
   for (j in 1:7){
     d = d_cor[[nms[j]]]$output_reg
 
-    tet = computes_veg_month(d$coef_partialcor[1,])
-    tet2 = computes_veg_month(d$coef_partialcor[2,])
+    tet = computes_veg_month(d$parcor_predH[1,])
+    tet2 = computes_veg_month(d$parcor_predD[1,])
     tt = tt2 = matrix(NA, 6, 12)
     for (i in 1: 12){
       tt[,i] = tet[[i]]
@@ -76,7 +77,7 @@ dev.off()
     if (k == 1){
       ylm = c(-0.1,1)
     }    else{
-      ylm = c(-0.5, 0.5)
+      ylm = c(-0.1,1)
     }
     for (i in 1:6){
       if (i == 1){
@@ -85,17 +86,15 @@ dev.off()
         ylb = "Partial Correlation"
       }
       par(new = F)
-         boxplot(tout[[k,i]][2:7,], cex.main = 4, cex.axis = 2, cex.lab = 3,
+      boxplot(tout[[k,i]][2:7,], cex.main = 4, cex.axis = 2, cex.lab = 3,
               xlab = "Month", ylab =ylb, main = nms_veg[i], ylim = ylm, xlim = c(0.5, 12.5))
-         par(new = T)
-         plot(1:12,tout[[k,i]][1,], type = 'l', lty=2, col = "black", lwd = 3,cex.main = 4, cex.axis = 2, cex.lab = 3,
-                 xlab = "Month", ylab =ylb, main = nms_veg[i], ylim = ylm, xlim = c(0.5, 12.5))
+      par(new = T)
+      plot(1:12,tout[[k,i]][1,], type = 'l',lty = 1, col = "blue", lwd = 3,cex.main = 4, cex.axis = 2, cex.lab = 3,
+           xlab = "Month", ylab =ylb, main = nms_veg[i], ylim = ylm, xlim = c(0.5, 12.5))
 
     }
   }
 
   graphics.off()
 }
-
-
 

@@ -32,7 +32,7 @@ months = 1:12
 }
 
 veg = c("Pgpp","SDgpp","SIFgpp","VPMgpp","Musyqgpp","LUEgpp")
-for (vegi in 1:length(veg)) {
+for (vegi in 6:length(veg)) {
   tveg = hd
   tveg$veg = data[[veg[vegi]]]
   tveg = merge_vars(tveg)
@@ -73,7 +73,7 @@ for (vegi in 1:length(veg)) {
         names(te) = tnms
 
         idxall =colMeans(is.na(t(te))) ==0
-        if ((sum(idxall) <= 10) || (sd(te$veg, na.rm = T)==0)){
+        if ((sum(idxall) <= 15) || (sd(te$veg, na.rm = T)==0)){
 
         }
         else{
