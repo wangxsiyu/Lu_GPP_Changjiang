@@ -60,6 +60,7 @@ cols = c("#23FFDC", "#00008F", "#800000", "#FF4A00", "#005AFF", "#ECFF13")
     tet = lagveg2veglag(tet)
     tet = computes_veg_month(d$coef_partialcor[,])
     tet = lagveg2veglag(tet)
+    od = order(d$lag)
 
     for (i in 1:6){
       # par(mar = c(3,3,5,2) + 0.1,xpd = NA)
@@ -73,10 +74,10 @@ cols = c("#23FFDC", "#00008F", "#800000", "#FF4A00", "#005AFF", "#ECFF13")
       {
         ylb = "";
       }
-      boxplot(tt[,], names = NA,ylim = c(-0.2, 0.4),
+      boxplot(tt[,od], names = NA,ylim = c(-0.2, 0.4),
               xlab = "Month (lag)", ylab = ylb,
               main = nms_veg[i], col = cols[i], cex.main = 4, cex.axis = 2, cex.lab = 3)
-      # axis(side = 1,at = 1:length(od),labels = d$lag[od], cex.axis = 1.1, cex.lab = 2.25)
+      axis(side = 1,at = 1:length(od),labels = d$lag[od], cex.axis = 1.1, cex.lab = 2.25)
     }
 
   }
